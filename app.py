@@ -1,8 +1,6 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
-from fpdf import FPDF
-import io
 
 # ---------------------------------------------------------
 # CẤU HÌNH TRANG & CƠ SỞ DỮ LIỆU SẢN PHẨM
@@ -42,14 +40,14 @@ TOPPING_OPTIONS = {
 SUGAR_LEVELS = ["100% (Bình thường)", "70%", "50%", "30%", "0% (Không đường)"]
 ICE_LEVELS = ["100% (Bình thường)", "70%", "50%", "30%", "0% (Không đá)"]
 
-# Khởi tạo session state lưu trữ giỏ hàng và hóa đơn
+# Khởi tạo session state lưu trữ giỏ hàng và trạng thái hóa đơn
 if "cart" not in st.session_state:
     st.session_state.cart = []
 if "invoice_paid" not in st.session_state:
     st.session_state.invoice_paid = False
 
 # ---------------------------------------------------------
-# HÀM XUẤT HÓA ĐƠN PDF / TXT
+# HÀM XUẤT HÓA ĐƠN DẠNG TEXT (.TXT)
 # ---------------------------------------------------------
 def create_txt_invoice(customer_name, cart, total_amount, discount, final_amount):
     """Tạo file hóa đơn dạng văn bản (TXT)"""
@@ -64,7 +62,7 @@ def create_txt_invoice(customer_name, cart, total_amount, discount, final_amount
     for idx, item in enumerate(cart, 1):
         content += f"{idx}. {item['Tên món']} ({item['Size']})\n"
         content += f"   - Đường: {item['Đường']} | Đá: {item['Đá']}\n"
-        if item['Topping']:
+        if item['Topping'] != "Không":
             content += f"   - Topping: {item['Topping']}\n"
         content += f"   SL: {item['Số lượng']} x {item['Đơn giá']:,} = {item['Thành tiền']:,} VNĐ\n"
         
@@ -91,7 +89,7 @@ with col_left:
     # 1. Thông tin khách hàng
     customer_name = st.text_input("Tên khách hàng:", placeholder="Nhập tên khách hàng...")
     
-    st.markdown("#### Choose món nước & Tùy chọn")
+    st.markdown("#### Chọn món nước & Tùy chọn")
     
     # 2. Chọn trà sữa & số lượng
     col_item, col_qty = st.columns([3, 1])
@@ -129,7 +127,7 @@ with col_left:
         topping_str = ", ".join(selected_toppings) if selected_toppings else "Không"
         item_data = {
             "Tên món": selected_tea,
-            "Size": selected_size.split()[0], # Lấy tên S, M, L ngắn gọn
+            "Size": selected_size.split()[0], # Lấy ký tự S, M, L
             "Đường": selected_sugar.split()[0],
             "Đá": selected_ice.split()[0],
             "Topping": topping_str,
@@ -146,7 +144,7 @@ with col_right:
     st.subheader("🛒 Danh sách món đã gọi")
 
     if not st.session_state.cart:
-        st.warning("Giỏ hàng hiện đang trống. Vui lòng thêm món ở cột bên trái.")
+        st.warning("Giỏ hàng hiện đang trống. Vui lòng chọn món ở cột bên trái.")
     else:
         # Hiển thị giỏ hàng bằng Bảng Pandas
         df_cart = pd.DataFrame(st.session_state.cart)
@@ -166,7 +164,7 @@ with col_right:
 
         st.markdown("---")
         
-        # Calculate tổng tiền
+        # Tính tổng tiền
         total_price = df_cart["Thành tiền"].sum()
         
         col_disc, col_pay = st.columns(2)
@@ -194,20 +192,20 @@ if st.session_state.get("invoice_paid") and st.session_state.cart:
     # Hiển thị hóa đơn trực quan
     invoice_box = st.container(border=True)
     with invoice_box:
-        st.markdown("<h2 style='text-align: center;'>🧋 HÓA ĐƠN BÁN HÀNG - BOBA TEA</h2>", unsafe_allow_html=True)
-        st.write(f"**Ngày lập:** {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}")
+        st.markdown("<h2 style='text-align: center; color: #FF4B4B;'>🧋 HÓA ĐƠN BÁN HÀNG - BOBA TEA</h2>", unsafe_allow_html=True)
+        st.write(f"**Thời gian:** {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}")
         st.write(f"**Khách hàng:** {customer_name if customer_name else 'Khách vãng lai'}")
         
         st.table(pd.DataFrame(st.session_state.cart)[["Tên món", "Size", "Đường", "Đá", "Topping", "Số lượng", "Thành tiền"]])
         
         c1, c2 = st.columns(2)
         with c1:
-            st.write(f"**Tổng cộng:** {total_price:,} VNĐ")
+            st.write(f"**Tổng tiền món:** {total_price:,} VNĐ")
             st.write(f"**Giảm giá:** {discount}%")
         with c2:
-            st.markdown(f"### TỔNG CỦA BẠN: {final_price:,} VNĐ")
+            st.markdown(f"### TỔNG CỦA BẠN: <span style='color:red'>{final_price:,} VNĐ</span>", unsafe_allow_html=True)
 
-    # Chuẩn bị file tải về
+    # Chuẩn bị file tải về dạng TXT
     txt_data = create_txt_invoice(customer_name, st.session_state.cart, total_price, discount, final_price)
     
     col_dl1, col_dl2 = st.columns(2)
