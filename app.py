@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
-
+st.image("TRASUA.jpg")
 # ---------------------------------------------------------
 # CẤU HÌNH TRANG & CƠ SỞ DỮ LIỆU SẢN PHẨM
 # ---------------------------------------------------------
