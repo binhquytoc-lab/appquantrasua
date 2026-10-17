@@ -13,7 +13,8 @@ st.set_page_config(
 
 # Danh sách menu & giá (VND)
 MENU_TEA = {
-    "Trà Sữa Truyền Thống": 28000,
+    "Trà Sữa Truyền Thống": 25000,
+    "TRÀ SỮA SẦU RIÊNG": 150000,
     "Trà Sữa Trân Châu Đường Đen": 35000,
     "Trà Sữa Thái Xanh": 32000,
     "TRÀ TÀO LAO BÍ ĐAO": 100000,
